@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>東京都デジタルツイン実現プロジェクト 点群DSMタイル</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link
+      href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
+    <script type="module" src="maplibre-gl-gsi-terrain-fast-png.js"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <script type="module">
+      const protocol = new pmtiles.Protocol();
+      maplibregl.addProtocol("pmtiles", protocol.tile);
+
+      const map = new maplibregl.Map({
+        container: "map",
+        style: "std.json",
+        zoom: 14.68,
+        minZoom: 1,
+        maxZoom: 23,
+        pitch: 54,
+        bearing: 0,
+        maxPitch: 85,
+        center: [139.76663, 35.68262],
+        hash: true,
+        attributionControl: false,
+      });
+
+      map.addControl(new maplibregl.NavigationControl());
+      map.addControl(new maplibregl.FullscreenControl());
+      map.addControl(
+        new maplibregl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: false },
+          fitBoundsOptions: { maxZoom: 18 },
+          trackUserLocation: true,
+          showUserLocation: true,
+        })
+      );
+      map.addControl(
+        new maplibregl.ScaleControl({ maxWidth: 200, unit: "metric" })
+      );
+      map.addControl(new maplibregl.AttributionControl({ compact: true }));
+
+      map.on("load", () => {
+        // DSMソース
+        map.addSource("dsm", {
+          type: "raster-dem",
+          tiles: [
+            "gsidem://https://shiworks.xsrv.jp/raster-tiles/tokyo-digitaltwin/tokyo-station-dsm/{z}/{x}/{y}.png",
+          ],
+          tileSize: 256,
+          attribution:
+            '<a href="https://www.geospatial.jp/ckan/dataset/tokyopc-23ku-2024" target="_blank">東京都デジタルツイン実現プロジェクト 区部点群データを加工して作成</a>',
+        });
+
+        // DSMセット
+        map.setTerrain({ source: "dsm", exaggeration: 1 });
+
+        // 3D地形コントロール
+        map.addControl(
+          new maplibregl.TerrainControl({
+            source: "dsm",
+            exaggeration: 1,
+          })
+        );
+
+        // 陰影起伏図レイヤー
+        map.addLayer({
+          id: "hillshading",
+          source: "dsm",
+          type: "hillshade",
+          paint: {
+            "hillshade-shadow-color": "#473B24",
+          },
+        });
+      });
+    </script>
+  </body>
+</html>
