@@ -59,6 +59,14 @@
       );
       map.addControl(new maplibregl.AttributionControl({ compact: true }));
 
+      // 3D地形コントロール
+      map.addControl(
+        new maplibregl.TerrainControl({
+          source: "dsm",
+          exaggeration: 1,
+        })
+      );
+
       map.on("load", () => {
         // DSMソース
         map.addSource("dsm", {
@@ -73,14 +81,6 @@
 
         // DSMセット
         map.setTerrain({ source: "dsm", exaggeration: 1 });
-
-        // 3D地形コントロール
-        map.addControl(
-          new maplibregl.TerrainControl({
-            source: "dsm",
-            exaggeration: 1,
-          })
-        );
 
         // 陰影起伏図レイヤー
         map.addLayer({
